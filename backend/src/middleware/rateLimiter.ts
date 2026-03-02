@@ -3,9 +3,10 @@ import RedisStore from 'rate-limit-redis';
 import { redis } from '../config/redis';
 
 function createRedisStore(prefix: string) {
+  if (!redis) return undefined;
   try {
     return new RedisStore({
-      sendCommand: (...args: string[]) => redis.call(args[0], ...args.slice(1)) as Promise<any>,
+      sendCommand: (...args: string[]) => redis!.call(args[0], ...args.slice(1)) as Promise<any>,
       prefix,
     });
   } catch {

@@ -9,12 +9,16 @@ async function startServer() {
     await prisma.$connect();
     console.log('Connected to PostgreSQL database');
 
-    // Test Redis connection
-    try {
-      await redis.connect();
-      console.log('Connected to Redis');
-    } catch (redisError) {
-      console.warn('Redis connection failed, rate limiting will use memory store:', (redisError as Error).message);
+    // Test Redis connection (optional)
+    if (redis) {
+      try {
+        await redis.connect();
+        console.log('Connected to Redis');
+      } catch (redisError) {
+        console.warn('Redis connection failed, rate limiting will use memory store:', (redisError as Error).message);
+      }
+    } else {
+      console.warn('Redis not configured, using memory store for rate limiting');
     }
 
     app.listen(env.PORT, () => {
@@ -32,14 +36,14 @@ async function startServer() {
 process.on('SIGINT', async () => {
   console.log('\nShutting down gracefully...');
   await prisma.$disconnect();
-  redis.disconnect();
+  if (redis) redis.disconnect();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
   console.log('\nShutting down gracefully...');
   await prisma.$disconnect();
-  redis.disconnect();
+  if (redis) redis.disconnect();
   process.exit(0);
 });
 
