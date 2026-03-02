@@ -1,0 +1,79 @@
+services:
+  # ─── PostgreSQL ───
+  db:
+    image: postgres:16-alpine
+    container_name: padelmatch-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-padelmatch}
+      POSTGRES_USER: ${DB_USER:-padelmatch_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-padelmatch_secret_2025}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-padelmatch_user} -d ${DB_NAME:-padelmatch}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Redis ───
+  redis:
+    image: redis:7-alpine
+    container_name: padelmatch-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    command: redis-server --appendonly yes
+
+  # ─── Backend API ───
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: padelmatch-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://${DB_USER:-padelmatch_user}:${DB_PASSWORD:-padelmatch_secret_2025}@db:5432/${DB_NAME:-padelmatch}
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-super_secret_jwt_key_change_in_production}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-super_secret_refresh_key_change_in_prod}
+      FRONTEND_URL: http://localhost:5173,http://192.168.100.61:5173
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend/src:/app/src
+      - /app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: sh -c "npx prisma db push --schema=src/prisma/schema.prisma && npx prisma db seed && npm run dev"
+
+  # ─── Frontend React ───
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: padelmatch-web
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://192.168.100.61:3000/api
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend/src:/app/src
+      - /app/node_modules
+    depends_on:
+      - backend
+    command: npm run dev
+
+volumes:
+  pgdata:
+  redisdata:

@@ -1,0 +1,18 @@
+{
+  "name": "matchpadel",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "docker-compose up --build",
+    "dev:detached": "docker-compose up -d --build",
+    "stop": "docker-compose down",
+    "reset": "docker-compose down -v && docker-compose up --build",
+    "logs": "docker-compose logs -f",
+    "logs:api": "docker-compose logs -f backend",
+    "logs:web": "docker-compose logs -f frontend",
+    "db:migrate": "docker-compose exec backend npx prisma migrate dev",
+    "db:seed": "docker-compose exec backend npx prisma db seed",
+    "db:studio": "docker-compose exec backend npx prisma studio",
+    "db:reset": "docker-compose exec backend npx prisma migrate reset --force"
+  }
+}

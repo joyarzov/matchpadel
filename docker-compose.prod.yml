@@ -1,0 +1,53 @@
+services:
+  # ─── PostgreSQL ───
+  db:
+    image: postgres:16-alpine
+    container_name: matchpadel-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-padelmatch}
+      POSTGRES_USER: ${DB_USER:-padelmatch_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-padelmatch_secret_2025}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-padelmatch_user} -d ${DB_NAME:-padelmatch}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Backend API ───
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: matchpadel-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://${DB_USER:-padelmatch_user}:${DB_PASSWORD:-padelmatch_secret_2025}@db:5432/${DB_NAME:-padelmatch}
+      JWT_SECRET: ${JWT_SECRET:-super_secret_jwt_key_change_in_production_abc123def456}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-super_secret_refresh_key_change_in_production_xyz789}
+      FRONTEND_URL: https://doc.australbyte.cl
+    ports:
+      - "7081:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "npx prisma db push --schema=src/prisma/schema.prisma && npx prisma db seed && npm run dev"
+
+  # ─── Frontend (nginx serving built assets) ───
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: matchpadel-web
+    restart: unless-stopped
+    ports:
+      - "7080:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

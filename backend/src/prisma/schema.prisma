@@ -1,0 +1,153 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  PLAYER
+  ADMIN
+}
+
+enum MatchStatus {
+  OPEN
+  FULL
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PlayerCategory {
+  SEXTA
+  QUINTA
+  CUARTA
+  TERCERA
+  SEGUNDA
+  PRIMERA
+}
+
+model User {
+  id            String          @id @default(uuid())
+  email         String          @unique
+  passwordHash  String          @map("password_hash")
+  firstName     String          @map("first_name")
+  lastName      String          @map("last_name")
+  phone         String
+  category      PlayerCategory  @default(SEXTA)
+  role          UserRole        @default(PLAYER)
+  avatarUrl     String?         @map("avatar_url")
+  isActive      Boolean         @default(true) @map("is_active")
+  createdMatches   Match[]        @relation("MatchCreator")
+  matchPlayers     MatchPlayer[]
+  reportedScores   MatchScore[]
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+  lastLoginAt   DateTime?       @map("last_login_at")
+  @@map("users")
+}
+
+model Club {
+  id          String    @id @default(uuid())
+  name        String
+  address     String
+  city        String    @default("Valdivia")
+  region      String    @default("Los Ríos")
+  phone       String?
+  email       String?
+  imageUrl    String?   @map("image_url")
+  latitude    Float?
+  longitude   Float?
+  isActive    Boolean   @default(true) @map("is_active")
+  courts      Court[]
+  matches     Match[]
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  @@map("clubs")
+}
+
+model Court {
+  id          String    @id @default(uuid())
+  clubId      String    @map("club_id")
+  number      Int
+  name        String?
+  isIndoor    Boolean   @default(false) @map("is_indoor")
+  surface     String    @default("césped sintético")
+  isActive    Boolean   @default(true) @map("is_active")
+  club        Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  matches     Match[]
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  @@unique([clubId, number])
+  @@map("courts")
+}
+
+model Match {
+  id              String          @id @default(uuid())
+  creatorId       String          @map("creator_id")
+  clubId          String          @map("club_id")
+  courtId         String?         @map("court_id")
+  category        PlayerCategory
+  status          MatchStatus     @default(OPEN)
+  scheduledDate   DateTime        @map("scheduled_date")
+  scheduledTime   String          @map("scheduled_time")
+  durationMinutes Int             @default(90) @map("duration_minutes")
+  maxPlayers      Int             @default(4) @map("max_players")
+  confirmedCount  Int             @default(1) @map("confirmed_count")
+  notes           String?
+  isPrivate       Boolean         @default(false) @map("is_private")
+  creator         User            @relation("MatchCreator", fields: [creatorId], references: [id])
+  club            Club            @relation(fields: [clubId], references: [id])
+  court           Court?          @relation(fields: [courtId], references: [id])
+  players         MatchPlayer[]
+  scores          MatchScore[]
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  @@index([status, scheduledDate])
+  @@index([clubId, scheduledDate])
+  @@index([category, status])
+  @@map("matches")
+}
+
+model MatchPlayer {
+  id        String   @id @default(uuid())
+  matchId   String   @map("match_id")
+  userId    String   @map("user_id")
+  joinedAt  DateTime @default(now()) @map("joined_at")
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+  @@unique([matchId, userId])
+  @@map("match_players")
+}
+
+model MatchScore {
+  id           String   @id @default(uuid())
+  matchId      String   @map("match_id")
+  reportedById String   @map("reported_by_id")
+  set1Team1    Int      @map("set1_team1")
+  set1Team2    Int      @map("set1_team2")
+  set2Team1    Int      @map("set2_team1")
+  set2Team2    Int      @map("set2_team2")
+  set3Team1    Int?     @map("set3_team1")
+  set3Team2    Int?     @map("set3_team2")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  match      Match @relation(fields: [matchId], references: [id])
+  reportedBy User  @relation(fields: [reportedById], references: [id])
+
+  @@unique([matchId, reportedById])
+  @@map("match_scores")
+}
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+  token       String   @unique
+  userId      String   @map("user_id")
+  expiresAt   DateTime @map("expires_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  @@index([userId])
+  @@map("refresh_tokens")
+}
