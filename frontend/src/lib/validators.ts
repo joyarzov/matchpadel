@@ -7,8 +7,7 @@ export const loginSchema = z.object({
     .email('El email no es válido'),
   password: z
     .string()
-    .min(1, 'La contraseña es requerida')
-    .min(6, 'La contraseña debe tener al menos 6 caracteres'),
+    .min(1, 'La contraseña es requerida'),
 });
 
 export const registerSchema = z
@@ -29,22 +28,21 @@ export const registerSchema = z
       .email('El email no es válido'),
     password: z
       .string()
-      .min(1, 'La contraseña es requerida')
-      .min(6, 'La contraseña debe tener al menos 6 caracteres')
-      .max(100, 'La contraseña no puede tener más de 100 caracteres'),
+      .min(8, 'La contraseña debe tener al menos 8 caracteres')
+      .regex(/[A-Z]/, 'Debe contener al menos una mayúscula')
+      .regex(/[0-9]/, 'Debe contener al menos un número')
+      .regex(/[^A-Za-z0-9]/, 'Debe contener al menos un carácter especial'),
     confirmPassword: z
       .string()
       .min(1, 'Confirma tu contraseña'),
     phone: z
       .string()
-      .regex(/^\+?[0-9]{8,15}$/, 'El teléfono no es válido')
-      .optional()
-      .or(z.literal('')),
+      .regex(/^\+569\d{8}$/, 'El teléfono debe tener formato +569XXXXXXXX'),
     gender: z.enum(['MALE', 'FEMALE'], {
       required_error: 'Selecciona tu género',
     }),
     category: z
-      .enum(['PRIMERA', 'SEGUNDA', 'TERCERA', 'CUARTA', 'QUINTA', 'SEXTA', 'SEPTIMA'])
+      .enum(['PRIMERA', 'SEGUNDA', 'TERCERA', 'CUARTA', 'QUINTA', 'SEXTA'])
       .optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {

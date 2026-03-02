@@ -1,5 +1,6 @@
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { UserPlus, Search, Trophy, Users, Building2, ArrowRight, ClipboardCheck, TrendingUp } from 'lucide-react';
+import { UserPlus, Search, Trophy, Users, Building2, ArrowRight, ClipboardCheck, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PadelIcon } from '@/components/icons/PadelIcon';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -31,7 +32,7 @@ const steps = [
 
 const stats = [
   { label: 'Jugadores', value: '50+', icon: Users },
-  { label: 'Clubes', value: '3', icon: Building2 },
+  { label: 'Clubes', value: '5', icon: Building2 },
   { label: 'Partidos', value: '100+', icon: PadelIcon },
 ];
 
@@ -45,7 +46,25 @@ const positionBadge = (pos: number) => {
 export default function LandingPage() {
   const { data: clubs } = useClubs();
   const { data: ranking } = useRanking(10);
-  const featuredClubs = clubs?.slice(0, 3) ?? [];
+  const allClubs = clubs ?? [];
+  const [carouselIndex, setCarouselIndex] = useState(0);
+
+  const visibleCount = 3;
+  const maxIndex = Math.max(0, allClubs.length - visibleCount);
+
+  const nextSlide = useCallback(() => {
+    setCarouselIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
+  }, [maxIndex]);
+
+  const prevSlide = useCallback(() => {
+    setCarouselIndex((prev) => (prev <= 0 ? maxIndex : prev - 1));
+  }, [maxIndex]);
+
+  useEffect(() => {
+    if (allClubs.length <= visibleCount) return;
+    const interval = setInterval(nextSlide, 4000);
+    return () => clearInterval(interval);
+  }, [allClubs.length, nextSlide]);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -143,29 +162,72 @@ export default function LandingPage() {
               Juega en los mejores clubes de pádel de la ciudad.
             </p>
           </div>
-          <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {featuredClubs.length > 0 ? (
-              featuredClubs.map((club) => <ClubCard key={club.id} club={club} />)
-            ) : (
-              <>
-                {[
-                  { name: 'Club Pádel Valdivia', address: 'Av. Ramón Picarte 2050' },
-                  { name: 'Pádel Sur', address: 'Camino Isla Teja 1200' },
-                  { name: 'Centro Deportivo Austral', address: 'Los Robles 500' },
-                ].map((club) => (
-                  <Card key={club.name} className="overflow-hidden">
-                    <div className="flex h-36 items-center justify-center bg-gradient-to-br from-blue-800 to-blue-600">
-                      <Building2 className="h-12 w-12 text-blue-200" />
+          {allClubs.length > 0 ? (
+            <div className="relative mt-12">
+              {allClubs.length > visibleCount && (
+                <>
+                  <button
+                    onClick={prevSlide}
+                    className="absolute -left-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-lg hover:bg-slate-50"
+                    aria-label="Anterior"
+                  >
+                    <ChevronLeft className="h-5 w-5 text-slate-600" />
+                  </button>
+                  <button
+                    onClick={nextSlide}
+                    className="absolute -right-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-lg hover:bg-slate-50"
+                    aria-label="Siguiente"
+                  >
+                    <ChevronRight className="h-5 w-5 text-slate-600" />
+                  </button>
+                </>
+              )}
+              <div className="overflow-hidden">
+                <div
+                  className="flex transition-transform duration-500 ease-in-out"
+                  style={{ transform: `translateX(-${carouselIndex * (100 / visibleCount)}%)` }}
+                >
+                  {allClubs.map((club) => (
+                    <div key={club.id} className="w-1/3 flex-shrink-0 px-3">
+                      <ClubCard club={club} />
                     </div>
-                    <CardContent className="p-4">
-                      <h3 className="text-base font-semibold text-slate-800">{club.name}</h3>
-                      <p className="mt-1 text-sm text-slate-500">{club.address}, Valdivia</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </>
-            )}
-          </div>
+                  ))}
+                </div>
+              </div>
+              {allClubs.length > visibleCount && (
+                <div className="mt-6 flex justify-center gap-2">
+                  {Array.from({ length: maxIndex + 1 }).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCarouselIndex(i)}
+                      className={`h-2 rounded-full transition-all ${
+                        i === carouselIndex ? 'w-6 bg-blue-800' : 'w-2 bg-slate-300'
+                      }`}
+                      aria-label={`Ir a slide ${i + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {[
+                { name: 'Club Pádel Valdivia', address: 'Av. Ramón Picarte 2050' },
+                { name: 'Pádel Sur', address: 'Camino Isla Teja 1200' },
+                { name: 'Centro Deportivo Austral', address: 'Los Robles 500' },
+              ].map((club) => (
+                <Card key={club.name} className="overflow-hidden">
+                  <div className="flex h-36 items-center justify-center bg-gradient-to-br from-blue-800 to-blue-600">
+                    <Building2 className="h-12 w-12 text-blue-200" />
+                  </div>
+                  <CardContent className="p-4">
+                    <h3 className="text-base font-semibold text-slate-800">{club.name}</h3>
+                    <p className="mt-1 text-sm text-slate-500">{club.address}, Valdivia</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

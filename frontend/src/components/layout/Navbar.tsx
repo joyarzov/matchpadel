@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Lock,
   CalendarSearch,
+  Trophy,
 } from 'lucide-react';
 import { PadelIcon } from '@/components/icons/PadelIcon';
 import { useAuth } from '@/hooks/useAuth';
@@ -29,6 +30,7 @@ const navLinks = [
   { label: 'Crear Partido', href: '/matches/create', icon: PlusCircle },
   { label: 'Mis Partidos', href: '/my-matches', icon: ListChecks },
   { label: 'Disponibilidad', href: '/availability', icon: CalendarSearch },
+  { label: 'Ranking', href: '/ranking', icon: Trophy },
 ];
 
 export function Navbar() {

@@ -15,6 +15,7 @@ const ProfilePage = lazy(() => import('@/pages/ProfilePage'));
 const EditMatchPage = lazy(() => import('@/pages/EditMatchPage'));
 const ChangePasswordPage = lazy(() => import('@/pages/ChangePasswordPage'));
 const AvailabilityPage = lazy(() => import('@/pages/AvailabilityPage'));
+const RankingPage = lazy(() => import('@/pages/RankingPage'));
 const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'));
 const ClubsManagement = lazy(() => import('@/pages/admin/ClubsManagement'));
 const CourtsManagement = lazy(() => import('@/pages/admin/CourtsManagement'));
@@ -47,6 +48,7 @@ export default function AppRouter() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/change-password" element={<ChangePasswordPage />} />
           <Route path="/availability" element={<AvailabilityPage />} />
+          <Route path="/ranking" element={<RankingPage />} />
         </Route>
 
         <Route element={<AdminRoute />}>

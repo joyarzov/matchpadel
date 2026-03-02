@@ -24,7 +24,7 @@ const categories: { value: PlayerCategory; label: string; description: string }[
 
 function getPasswordStrength(password: string): { score: number; label: string; color: string } {
   let score = 0;
-  if (password.length >= 6) score++;
+  if (password.length >= 8) score++;
   if (password.length >= 10) score++;
   if (/[A-Z]/.test(password)) score++;
   if (/[0-9]/.test(password)) score++;
@@ -79,7 +79,7 @@ export function RegisterForm() {
       const { confirmPassword: _, ...registerData } = data;
       const payload = {
         ...registerData,
-        phone: registerData.phone || undefined,
+        phone: registerData.phone,
         category: registerData.category || undefined,
         gender: registerData.gender,
       };
@@ -212,7 +212,7 @@ export function RegisterForm() {
                 <Input
                   id="register-password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder="Mínimo 8 caracteres"
                   autoComplete="new-password"
                   className="pr-10"
                   {...register('password')}

@@ -39,24 +39,6 @@ async function main() {
   // Seed clubes reales de Valdivia
   const clubsData = [
     {
-      name: 'Valdivia Padel Center',
-      address: 'Av. Pedro Aguirre Cerda #1154, Las Ánimas, Valdivia',
-      city: 'Valdivia',
-      region: 'Los Ríos',
-      phone: '+56958026216',
-      email: 'cm@valdiviapadelcenter.cl',
-      imageUrl: 'http://valdiviapadelcentercl.matchpoint.com.es/ValdiviaPadelCenter/img/logo.png',
-      latitude: -39.8380,
-      longitude: -73.2340,
-      matchpointDomain: 'valdiviapadelcentercl.matchpoint.com.es',
-      courts: [
-        { number: 1, name: 'Cancha 1', isIndoor: false, surface: 'césped sintético' },
-        { number: 2, name: 'Cancha 2', isIndoor: false, surface: 'césped sintético' },
-        { number: 3, name: 'Cancha 3', isIndoor: false, surface: 'césped sintético' },
-        { number: 4, name: 'Cancha 4', isIndoor: false, surface: 'césped sintético' },
-      ],
-    },
-    {
       name: 'Casa Pádel Valdivia',
       address: 'Sevilla 285, Las Ánimas, Valdivia',
       city: 'Valdivia',
