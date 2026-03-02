@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ClubSelector } from '@/components/clubs/ClubSelector';
 import { CourtSelector } from '@/components/clubs/CourtSelector';
+import { PlayerSearchInput } from '@/components/matches/PlayerSearchInput';
 import { cn } from '@/lib/utils';
-import type { CreateMatchRequest } from '@/types/match.types';
+import type { CreateMatchRequest, GenderMode } from '@/types/match.types';
 import type { PlayerCategory } from '@/types/auth.types';
 
 interface MatchFormProps {
@@ -16,6 +16,8 @@ interface MatchFormProps {
   initialData?: Partial<CreateMatchRequest>;
   isEdit?: boolean;
 }
+
+const MAX_PLAYERS = 4;
 
 const categoryOptions: { value: PlayerCategory; label: string }[] = [
   { value: 'SEXTA', label: 'Sexta' },
@@ -26,11 +28,33 @@ const categoryOptions: { value: PlayerCategory; label: string }[] = [
   { value: 'PRIMERA', label: 'Primera' },
 ];
 
+const genderModeOptions: { value: GenderMode; label: string }[] = [
+  { value: 'MALE_ONLY', label: 'Solo hombres' },
+  { value: 'FEMALE_ONLY', label: 'Solo mujeres' },
+  { value: 'MIXED', label: 'Mixto' },
+  { value: 'ANY', label: 'Cualquiera' },
+];
+
 const durationOptions = [
   { value: 60, label: '60 min' },
   { value: 90, label: '90 min' },
   { value: 120, label: '120 min' },
 ];
+
+const mixedOptions: { males: number; females: number; label: string }[] = [
+  { males: 1, females: 3, label: '1H + 3M' },
+  { males: 2, females: 2, label: '2H + 2M' },
+  { males: 3, females: 1, label: '3H + 1M' },
+];
+
+// Generate time slots from 07:00 to 23:00 in 30-min intervals
+const timeSlots: string[] = [];
+for (let h = 7; h <= 23; h++) {
+  timeSlots.push(`${String(h).padStart(2, '0')}:00`);
+  if (h < 23) {
+    timeSlots.push(`${String(h).padStart(2, '0')}:30`);
+  }
+}
 
 function addMinutesToTime(time: string, minutes: number): string {
   const [h, m] = time.split(':').map(Number);
@@ -48,10 +72,15 @@ export function MatchForm({ onSubmit, initialData, isEdit = false }: MatchFormPr
   );
   const [date, setDate] = useState(initialData?.scheduledDate ?? '');
   const [startTime, setStartTime] = useState(initialData?.scheduledTime ?? '');
-  const [duration, setDuration] = useState(initialData?.durationMinutes ?? 90);
+  const [duration, setDuration] = useState(initialData?.durationMinutes ?? 60);
   const [description, setDescription] = useState(initialData?.notes ?? '');
-  const [maxPlayers, setMaxPlayers] = useState(initialData?.maxPlayers ?? 4);
   const [initialPlayers, setInitialPlayers] = useState(initialData?.initialPlayers ?? 1);
+  const [genderMode, setGenderMode] = useState<GenderMode>(initialData?.genderMode ?? 'MALE_ONLY');
+  const [requiredMales, setRequiredMales] = useState<number>(initialData?.requiredMales ?? 2);
+  const [requiredFemales, setRequiredFemales] = useState<number>(initialData?.requiredFemales ?? 2);
+  const [guests, setGuests] = useState<Array<{ userId: string | null; name: string | null; user?: any }>>(
+    Array.from({ length: Math.max(0, (initialData?.initialPlayers ?? 1) - 1) }, () => ({ userId: null, name: null }))
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -80,9 +109,13 @@ export function MatchForm({ onSubmit, initialData, isEdit = false }: MatchFormPr
         scheduledDate: date,
         scheduledTime: startTime,
         durationMinutes: duration,
-        maxPlayers,
+        maxPlayers: MAX_PLAYERS,
         initialPlayers,
         notes: description || null,
+        genderMode,
+        requiredMales: genderMode === 'MIXED' ? requiredMales : null,
+        requiredFemales: genderMode === 'MIXED' ? requiredFemales : null,
+        guests: guests.map((g) => ({ userId: g.userId, name: g.name })),
       });
     } finally {
       setIsSubmitting(false);
@@ -149,15 +182,65 @@ export function MatchForm({ onSubmit, initialData, isEdit = false }: MatchFormPr
             )}
           </div>
 
+          {/* Gender Mode */}
+          <div className="space-y-2">
+            <Label>Tipo de partido</Label>
+            <div className="flex flex-wrap gap-2">
+              {genderModeOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setGenderMode(opt.value)}
+                  className={cn(
+                    'rounded-full border-2 px-4 py-1.5 text-sm font-medium transition-colors',
+                    genderMode === opt.value
+                      ? 'border-blue-800 bg-blue-800 text-white'
+                      : 'border-slate-200 text-slate-600 hover:border-slate-300',
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Mixed: required males/females */}
+          {genderMode === 'MIXED' && (
+            <div className="space-y-2">
+              <Label>Distribucion de jugadores</Label>
+              <div className="flex flex-wrap gap-2">
+                {mixedOptions.map((opt) => (
+                  <button
+                    key={opt.label}
+                    type="button"
+                    onClick={() => {
+                      setRequiredMales(opt.males);
+                      setRequiredFemales(opt.females);
+                    }}
+                    className={cn(
+                      'rounded-full border-2 px-4 py-1.5 text-sm font-medium transition-colors',
+                      requiredMales === opt.males && requiredFemales === opt.females
+                        ? 'border-purple-600 bg-purple-600 text-white'
+                        : 'border-slate-200 text-slate-600 hover:border-slate-300',
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Date */}
           <div className="space-y-2">
             <Label htmlFor="match-date">Fecha</Label>
-            <Input
+            <input
               id="match-date"
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
               min={new Date().toISOString().split('T')[0]}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             />
             {errors.date && (
               <p className="text-xs text-red-500">{errors.date}</p>
@@ -167,12 +250,19 @@ export function MatchForm({ onSubmit, initialData, isEdit = false }: MatchFormPr
           {/* Time */}
           <div className="space-y-2">
             <Label htmlFor="match-time">Hora de inicio</Label>
-            <Input
+            <select
               id="match-time"
-              type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-            />
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <option value="">Selecciona una hora</option>
+              {timeSlots.map((slot) => (
+                <option key={slot} value={slot}>
+                  {slot}
+                </option>
+              ))}
+            </select>
             {errors.startTime && (
               <p className="text-xs text-red-500">{errors.startTime}</p>
             )}
@@ -180,7 +270,7 @@ export function MatchForm({ onSubmit, initialData, isEdit = false }: MatchFormPr
 
           {/* Duration */}
           <div className="space-y-2">
-            <Label>Duración</Label>
+            <Label>Duracion</Label>
             <div className="flex gap-2">
               {durationOptions.map((opt) => (
                 <button
@@ -200,35 +290,26 @@ export function MatchForm({ onSubmit, initialData, isEdit = false }: MatchFormPr
             </div>
           </div>
 
-          {/* Max players */}
-          <div className="space-y-2">
-            <Label htmlFor="max-players">Jugadores máximos</Label>
-            <Input
-              id="max-players"
-              type="number"
-              min={2}
-              max={8}
-              value={maxPlayers}
-              onChange={(e) => {
-                const val = Number(e.target.value);
-                setMaxPlayers(val);
-                if (initialPlayers > val) setInitialPlayers(Math.min(initialPlayers, val));
-              }}
-            />
-          </div>
-
           {/* Initial players */}
           <div className="space-y-2">
-            <Label>¿Con cuántos jugadores vienes?</Label>
+            <Label>¿Con cuantos jugadores vienes?</Label>
             <div className="flex flex-wrap gap-2">
-              {Array.from({ length: maxPlayers }, (_, i) => i + 1).map((n) => {
+              {Array.from({ length: MAX_PLAYERS - 1 }, (_, i) => i + 1).map((n) => {
                 const label =
                   n === 1 ? 'Solo yo' : `Vengo con ${n - 1}`;
                 return (
                   <button
                     key={n}
                     type="button"
-                    onClick={() => setInitialPlayers(n)}
+                    onClick={() => {
+                      setInitialPlayers(n);
+                      const newGuestCount = n - 1;
+                      setGuests((prev) => {
+                        if (newGuestCount <= 0) return [];
+                        if (newGuestCount <= prev.length) return prev.slice(0, newGuestCount);
+                        return [...prev, ...Array.from({ length: newGuestCount - prev.length }, () => ({ userId: null, name: null }))];
+                      });
+                    }}
                     className={cn(
                       'rounded-full border-2 px-4 py-1.5 text-sm font-medium transition-colors',
                       initialPlayers === n
@@ -243,10 +324,31 @@ export function MatchForm({ onSubmit, initialData, isEdit = false }: MatchFormPr
             </div>
             {initialPlayers > 1 && (
               <p className="text-xs text-slate-500">
-                Se publicarán {maxPlayers - initialPlayers} cupo{maxPlayers - initialPlayers !== 1 ? 's' : ''} disponible{maxPlayers - initialPlayers !== 1 ? 's' : ''}
+                Se publicaran {MAX_PLAYERS - initialPlayers} cupo{MAX_PLAYERS - initialPlayers !== 1 ? 's' : ''} disponible{MAX_PLAYERS - initialPlayers !== 1 ? 's' : ''}
               </p>
             )}
           </div>
+
+          {/* Guest selection */}
+          {initialPlayers > 1 && (
+            <div className="space-y-3">
+              <Label>Jugadores que vienen contigo</Label>
+              {guests.map((guest, i) => (
+                <PlayerSearchInput
+                  key={i}
+                  index={i}
+                  value={guest}
+                  onChange={(val) => {
+                    setGuests((prev) => {
+                      const next = [...prev];
+                      next[i] = val;
+                      return next;
+                    });
+                  }}
+                />
+              ))}
+            </div>
+          )}
 
           {/* Notes */}
           <div className="space-y-2">
@@ -268,11 +370,28 @@ export function MatchForm({ onSubmit, initialData, isEdit = false }: MatchFormPr
               <CardTitle className="text-base text-slate-800">Vista previa</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 pt-4">
-              {category && (
-                <span className="inline-block rounded-full bg-blue-800 px-2.5 py-0.5 text-xs font-semibold text-white">
-                  {category}
-                </span>
-              )}
+              <div className="flex flex-wrap gap-1.5">
+                {category && (
+                  <span className="inline-block rounded-full bg-blue-800 px-2.5 py-0.5 text-xs font-semibold text-white">
+                    {category}
+                  </span>
+                )}
+                {genderMode === 'MALE_ONLY' && (
+                  <span className="inline-block rounded-full bg-blue-500 px-2.5 py-0.5 text-xs font-semibold text-white">
+                    Solo hombres
+                  </span>
+                )}
+                {genderMode === 'FEMALE_ONLY' && (
+                  <span className="inline-block rounded-full bg-pink-500 px-2.5 py-0.5 text-xs font-semibold text-white">
+                    Solo mujeres
+                  </span>
+                )}
+                {genderMode === 'MIXED' && (
+                  <span className="inline-block rounded-full bg-purple-500 px-2.5 py-0.5 text-xs font-semibold text-white">
+                    Mixto ({requiredMales}H + {requiredFemales}M)
+                  </span>
+                )}
+              </div>
 
               {clubId ? (
                 <p className="text-sm font-medium text-slate-800">Club seleccionado</p>
@@ -295,7 +414,7 @@ export function MatchForm({ onSubmit, initialData, isEdit = false }: MatchFormPr
               )}
 
               <div className="flex items-center gap-1">
-                {Array.from({ length: maxPlayers }).map((_, i) => (
+                {Array.from({ length: MAX_PLAYERS }).map((_, i) => (
                   <div
                     key={i}
                     className={cn(
@@ -307,9 +426,9 @@ export function MatchForm({ onSubmit, initialData, isEdit = false }: MatchFormPr
                   />
                 ))}
                 <span className="ml-2 text-sm text-slate-500">
-                  {initialPlayers}/{maxPlayers}
-                  {maxPlayers - initialPlayers > 0 && (
-                    <> · {maxPlayers - initialPlayers} cupo{maxPlayers - initialPlayers !== 1 ? 's' : ''}</>
+                  {initialPlayers}/{MAX_PLAYERS}
+                  {MAX_PLAYERS - initialPlayers > 0 && (
+                    <> · {MAX_PLAYERS - initialPlayers} cupo{MAX_PLAYERS - initialPlayers !== 1 ? 's' : ''}</>
                   )}
                 </span>
               </div>

@@ -64,13 +64,28 @@ export const matchService = {
     return response.data;
   },
 
-  async reportScore(matchId: string, data: ReportScoreRequest): Promise<MatchScoreData> {
+  async getScore(matchId: string): Promise<MatchScoreData | null> {
+    const response = await api.get<MatchScoreData | null>(`/matches/${matchId}/score`);
+    return response.data;
+  },
+
+  async proposeScore(matchId: string, data: ReportScoreRequest): Promise<MatchScoreData> {
     const response = await api.post<MatchScoreData>(`/matches/${matchId}/score`, data);
     return response.data;
   },
 
-  async getScores(matchId: string): Promise<MatchScoreData[]> {
-    const response = await api.get<MatchScoreData[]>(`/matches/${matchId}/scores`);
+  async approveScore(matchId: string): Promise<MatchScoreData> {
+    const response = await api.post<MatchScoreData>(`/matches/${matchId}/score/approve`);
+    return response.data;
+  },
+
+  async rejectScore(matchId: string): Promise<MatchScoreData> {
+    const response = await api.post<MatchScoreData>(`/matches/${matchId}/score/reject`);
+    return response.data;
+  },
+
+  async deleteProposal(matchId: string): Promise<{ message: string }> {
+    const response = await api.delete<{ message: string }>(`/matches/${matchId}/score`);
     return response.data;
   },
 };

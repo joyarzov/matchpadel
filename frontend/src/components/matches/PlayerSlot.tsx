@@ -1,11 +1,11 @@
-import { MessageCircle, UserPlus } from 'lucide-react';
+import { MessageCircle, UserPlus, User as UserIcon } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { getWhatsAppDirectLink } from '@/lib/whatsapp';
-import type { User } from '@/types/auth.types';
+import type { MatchPlayer } from '@/types/match.types';
 
 interface PlayerSlotProps {
-  player?: User | null;
+  matchPlayer?: MatchPlayer | null;
   isCreator?: boolean;
   onJoin?: () => void;
   matchCreatorPhone?: string | null;
@@ -13,13 +13,13 @@ interface PlayerSlotProps {
 }
 
 export function PlayerSlot({
-  player,
+  matchPlayer,
   isCreator = false,
   onJoin,
-  matchCreatorPhone,
   canJoin = false,
 }: PlayerSlotProps) {
-  if (!player) {
+  // Empty slot
+  if (!matchPlayer) {
     return (
       <div className="flex items-center gap-3 rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 px-4 py-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-dashed border-slate-300">
@@ -41,6 +41,30 @@ export function PlayerSlot({
     );
   }
 
+  // Guest without user account
+  if (matchPlayer.isGuest && !matchPlayer.user) {
+    const displayName = matchPlayer.guestName || 'Invitado';
+    return (
+      <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3">
+        <Avatar className="h-10 w-10">
+          <AvatarFallback className="bg-slate-200 text-sm text-slate-500">
+            <UserIcon className="h-5 w-5" />
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-medium text-slate-700">{displayName}</p>
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
+              Invitado
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Player with user account (registered user or guest with account)
+  const player = matchPlayer.user!;
   const initials = `${player.firstName.charAt(0)}${player.lastName.charAt(0)}`.toUpperCase();
   const whatsappLink = player.phone
     ? getWhatsAppDirectLink(player.phone)
@@ -62,6 +86,11 @@ export function PlayerSlot({
           {isCreator && (
             <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
               Creador
+            </span>
+          )}
+          {matchPlayer.isGuest && (
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
+              Invitado
             </span>
           )}
         </div>

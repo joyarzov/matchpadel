@@ -40,6 +40,9 @@ export const registerSchema = z
       .regex(/^\+?[0-9]{8,15}$/, 'El teléfono no es válido')
       .optional()
       .or(z.literal('')),
+    gender: z.enum(['MALE', 'FEMALE'], {
+      required_error: 'Selecciona tu género',
+    }),
     category: z
       .enum(['PRIMERA', 'SEGUNDA', 'TERCERA', 'CUARTA', 'QUINTA', 'SEXTA', 'SEPTIMA'])
       .optional(),

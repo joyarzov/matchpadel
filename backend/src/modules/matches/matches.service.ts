@@ -43,6 +43,9 @@ export class MatchesService {
           durationMinutes: data.durationMinutes,
           maxPlayers: data.maxPlayers,
           confirmedCount: initialPlayers,
+          genderMode: data.genderMode,
+          requiredMales: data.genderMode === 'MIXED' ? data.requiredMales ?? null : null,
+          requiredFemales: data.genderMode === 'MIXED' ? data.requiredFemales ?? null : null,
           notes: data.notes || null,
           isPrivate: data.isPrivate,
           status: initialStatus,
@@ -54,6 +57,7 @@ export class MatchesService {
               firstName: true,
               lastName: true,
               category: true,
+              gender: true,
             },
           },
           club: { select: { id: true, name: true } },
@@ -68,6 +72,38 @@ export class MatchesService {
           userId: creatorId,
         },
       });
+
+      // Add guests if any
+      const guests = data.guests ?? [];
+      for (let i = 0; i < guests.length; i++) {
+        const guest = guests[i];
+        if (guest.userId) {
+          // Registered user as guest
+          const guestUser = await tx.user.findUnique({ where: { id: guest.userId } });
+          if (!guestUser) {
+            throw new AppError(`Usuario invitado no encontrado: ${guest.userId}`, 404);
+          }
+          await tx.matchPlayer.create({
+            data: {
+              matchId: newMatch.id,
+              userId: guest.userId,
+              isGuest: true,
+              addedById: creatorId,
+            },
+          });
+        } else {
+          // Anonymous guest
+          await tx.matchPlayer.create({
+            data: {
+              matchId: newMatch.id,
+              userId: null,
+              isGuest: true,
+              guestName: guest.name || `Jugador ${i + 2}`,
+              addedById: creatorId,
+            },
+          });
+        }
+      }
 
       return newMatch;
     });
@@ -104,6 +140,7 @@ export class MatchesService {
               firstName: true,
               lastName: true,
               category: true,
+              gender: true,
             },
           },
           club: { select: { id: true, name: true, address: true } },
@@ -116,6 +153,7 @@ export class MatchesService {
                   firstName: true,
                   lastName: true,
                   category: true,
+                  gender: true,
                   avatarUrl: true,
                 },
               },
@@ -140,6 +178,7 @@ export class MatchesService {
             lastName: true,
             phone: true,
             category: true,
+            gender: true,
             avatarUrl: true,
           },
         },
@@ -225,7 +264,7 @@ export class MatchesService {
       data: updateData,
       include: {
         creator: {
-          select: { id: true, firstName: true, lastName: true, category: true },
+          select: { id: true, firstName: true, lastName: true, category: true, gender: true },
         },
         club: { select: { id: true, name: true } },
         court: { select: { id: true, number: true, name: true } },
@@ -272,7 +311,11 @@ export class MatchesService {
     const match = await prisma.match.findUnique({
       where: { id: matchId },
       include: {
-        players: true,
+        players: {
+          include: {
+            user: { select: { id: true, gender: true } },
+          },
+        },
       },
     });
 
@@ -291,6 +334,37 @@ export class MatchesService {
 
     if (match.confirmedCount >= match.maxPlayers) {
       throw new AppError('El partido está lleno', 400);
+    }
+
+    // Gender validation
+    const joiningUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { gender: true },
+    });
+
+    if (!joiningUser) {
+      throw new AppError('Usuario no encontrado', 404);
+    }
+
+    if (match.genderMode === 'MALE_ONLY' && joiningUser.gender !== 'MALE') {
+      throw new AppError('Este partido es solo para hombres', 403);
+    }
+
+    if (match.genderMode === 'FEMALE_ONLY' && joiningUser.gender !== 'FEMALE') {
+      throw new AppError('Este partido es solo para mujeres', 403);
+    }
+
+    if (match.genderMode === 'MIXED') {
+      const currentMales = match.players.filter((p) => p.user?.gender === 'MALE').length;
+      const currentFemales = match.players.filter((p) => p.user?.gender === 'FEMALE').length;
+
+      if (joiningUser.gender === 'MALE' && match.requiredMales != null && currentMales >= match.requiredMales) {
+        throw new AppError('Ya se completaron los cupos para hombres', 403);
+      }
+
+      if (joiningUser.gender === 'FEMALE' && match.requiredFemales != null && currentFemales >= match.requiredFemales) {
+        throw new AppError('Ya se completaron los cupos para mujeres', 403);
+      }
     }
 
     const result = await prisma.$transaction(async (tx) => {
@@ -312,7 +386,7 @@ export class MatchesService {
         },
         include: {
           creator: {
-            select: { id: true, firstName: true, lastName: true },
+            select: { id: true, firstName: true, lastName: true, gender: true },
           },
           club: { select: { id: true, name: true } },
           court: { select: { id: true, number: true, name: true } },
@@ -324,6 +398,7 @@ export class MatchesService {
                   firstName: true,
                   lastName: true,
                   category: true,
+                  gender: true,
                   avatarUrl: true,
                 },
               },
@@ -407,7 +482,7 @@ export class MatchesService {
         orderBy: [{ scheduledDate: 'desc' }, { scheduledTime: 'desc' }],
         include: {
           creator: {
-            select: { id: true, firstName: true, lastName: true, category: true },
+            select: { id: true, firstName: true, lastName: true, category: true, gender: true },
           },
           club: { select: { id: true, name: true, address: true } },
           court: { select: { id: true, number: true, name: true } },
@@ -419,6 +494,7 @@ export class MatchesService {
                   firstName: true,
                   lastName: true,
                   category: true,
+                  gender: true,
                   avatarUrl: true,
                 },
               },
@@ -430,6 +506,47 @@ export class MatchesService {
     ]);
 
     return { matches, total };
+  }
+
+  async removeGuest(matchId: string, matchPlayerId: string, userId: string) {
+    const match = await prisma.match.findUnique({
+      where: { id: matchId },
+    });
+
+    if (!match) {
+      throw new AppError('Partido no encontrado', 404);
+    }
+
+    if (match.creatorId !== userId) {
+      throw new AppError('Solo el creador puede eliminar invitados', 403);
+    }
+
+    const matchPlayer = await prisma.matchPlayer.findUnique({
+      where: { id: matchPlayerId },
+    });
+
+    if (!matchPlayer || matchPlayer.matchId !== matchId) {
+      throw new AppError('Jugador no encontrado en este partido', 404);
+    }
+
+    if (!matchPlayer.isGuest) {
+      throw new AppError('Solo se pueden eliminar jugadores invitados', 400);
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      await tx.matchPlayer.delete({ where: { id: matchPlayerId } });
+
+      const newCount = match.confirmedCount - 1;
+      const newStatus = match.status === 'FULL' ? 'OPEN' : match.status;
+
+      return tx.match.update({
+        where: { id: matchId },
+        data: { confirmedCount: newCount, status: newStatus },
+        select: { id: true, confirmedCount: true, status: true },
+      });
+    });
+
+    return result;
   }
 
   async getWhatsAppLink(matchId: string) {

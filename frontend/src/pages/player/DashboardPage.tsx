@@ -130,13 +130,13 @@ export default function DashboardPage() {
                 <Card>
                   <CardContent className="flex items-center gap-4 p-5">
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-100">
-                      <PlusCircle className="h-6 w-6 text-emerald-700" />
+                      <Trophy className="h-6 w-6 text-emerald-700" />
                     </div>
                     <div>
                       <p className="text-2xl font-bold text-slate-800">
-                        {stats?.matchesCreated ?? 0}
+                        {stats?.wins ?? 0}
                       </p>
-                      <p className="text-sm text-slate-500">Partidos creados</p>
+                      <p className="text-sm text-slate-500">Victorias</p>
                     </div>
                   </CardContent>
                 </Card>

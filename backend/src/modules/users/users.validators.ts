@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PlayerCategory, UserRole } from '@prisma/client';
+import { PlayerCategory, UserRole, Gender } from '@prisma/client';
 
 export const updateProfileSchema = z.object({
   firstName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres').trim().optional(),
@@ -10,6 +10,7 @@ export const updateProfileSchema = z.object({
     .optional(),
   category: z.nativeEnum(PlayerCategory).optional(),
   avatarUrl: z.string().url('URL de avatar inválida').nullable().optional(),
+  gender: z.nativeEnum(Gender).optional(),
 });
 
 export const changePasswordSchema = z.object({
@@ -30,6 +31,11 @@ export const userIdParamSchema = z.object({
   id: z.string().uuid('ID de usuario inválido'),
 });
 
+export const searchUsersSchema = z.object({
+  q: z.string().min(2, 'La búsqueda debe tener al menos 2 caracteres'),
+});
+
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type UpdateRoleInput = z.infer<typeof updateRoleSchema>;
+export type SearchUsersInput = z.infer<typeof searchUsersSchema>;

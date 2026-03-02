@@ -1,5 +1,7 @@
 export type UserRole = 'PLAYER' | 'ADMIN';
 
+export type Gender = 'MALE' | 'FEMALE';
+
 export type PlayerCategory =
   | 'PRIMERA'
   | 'SEGUNDA'
@@ -15,6 +17,7 @@ export interface User {
   lastName: string;
   phone: string | null;
   category: PlayerCategory | null;
+  gender: Gender;
   role: UserRole;
   avatarUrl: string | null;
   isActive: boolean;
@@ -33,6 +36,7 @@ export interface RegisterRequest {
   lastName: string;
   phone?: string;
   category?: PlayerCategory;
+  gender: Gender;
 }
 
 export interface AuthResponse {

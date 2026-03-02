@@ -30,6 +30,8 @@ services:
       JWT_SECRET: ${JWT_SECRET:-super_secret_jwt_key_change_in_production_abc123def456}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-super_secret_refresh_key_change_in_production_xyz789}
       FRONTEND_URL: https://doc.australbyte.cl
+      EASYCANCHA_EMAIL: ${EASYCANCHA_EMAIL}
+      EASYCANCHA_PASSWORD: ${EASYCANCHA_PASSWORD}
     ports:
       - "7081:3000"
     depends_on:

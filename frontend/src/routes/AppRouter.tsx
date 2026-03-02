@@ -12,6 +12,9 @@ const CreateMatchPage = lazy(() => import('@/pages/CreateMatchPage'));
 const MatchDetailPage = lazy(() => import('@/pages/MatchDetailPage'));
 const MyMatchesPage = lazy(() => import('@/pages/MyMatchesPage'));
 const ProfilePage = lazy(() => import('@/pages/ProfilePage'));
+const EditMatchPage = lazy(() => import('@/pages/EditMatchPage'));
+const ChangePasswordPage = lazy(() => import('@/pages/ChangePasswordPage'));
+const AvailabilityPage = lazy(() => import('@/pages/AvailabilityPage'));
 const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'));
 const ClubsManagement = lazy(() => import('@/pages/admin/ClubsManagement'));
 const CourtsManagement = lazy(() => import('@/pages/admin/CourtsManagement'));
@@ -39,8 +42,11 @@ export default function AppRouter() {
           <Route path="/matches" element={<MatchesListPage />} />
           <Route path="/matches/create" element={<CreateMatchPage />} />
           <Route path="/matches/:id" element={<MatchDetailPage />} />
+          <Route path="/matches/:id/edit" element={<EditMatchPage />} />
           <Route path="/my-matches" element={<MyMatchesPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/change-password" element={<ChangePasswordPage />} />
+          <Route path="/availability" element={<AvailabilityPage />} />
         </Route>
 
         <Route element={<AdminRoute />}>

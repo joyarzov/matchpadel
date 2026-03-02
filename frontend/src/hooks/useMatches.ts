@@ -90,22 +90,55 @@ export function useLeaveMatch() {
   });
 }
 
-export function useMatchScores(matchId: string) {
+export function useMatchScore(matchId: string) {
   return useQuery({
-    queryKey: ['matchScores', matchId],
-    queryFn: () => matchService.getScores(matchId),
+    queryKey: ['matchScore', matchId],
+    queryFn: () => matchService.getScore(matchId),
     enabled: !!matchId,
   });
 }
 
-export function useReportScore() {
+export function useProposeScore() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ matchId, data }: { matchId: string; data: ReportScoreRequest }) =>
-      matchService.reportScore(matchId, data),
+      matchService.proposeScore(matchId, data),
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['matchScores', variables.matchId] });
+      queryClient.invalidateQueries({ queryKey: ['matchScore', variables.matchId] });
+    },
+  });
+}
+
+export function useApproveScore() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (matchId: string) => matchService.approveScore(matchId),
+    onSuccess: (_data, matchId) => {
+      queryClient.invalidateQueries({ queryKey: ['matchScore', matchId] });
+    },
+  });
+}
+
+export function useRejectScore() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (matchId: string) => matchService.rejectScore(matchId),
+    onSuccess: (_data, matchId) => {
+      queryClient.invalidateQueries({ queryKey: ['matchScore', matchId] });
+    },
+  });
+}
+
+export function useDeleteProposal() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (matchId: string) => matchService.deleteProposal(matchId),
+    onSuccess: (_data, matchId) => {
+      queryClient.invalidateQueries({ queryKey: ['matchScore', matchId] });
     },
   });
 }

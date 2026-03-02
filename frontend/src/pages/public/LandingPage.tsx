@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { UserPlus, Search, Trophy, Users, Building2, ArrowRight } from 'lucide-react';
+import { UserPlus, Search, Trophy, Users, Building2, ArrowRight, ClipboardCheck, TrendingUp } from 'lucide-react';
 import { PadelIcon } from '@/components/icons/PadelIcon';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -13,19 +13,19 @@ import { Badge } from '@/components/ui/badge';
 
 const steps = [
   {
-    icon: UserPlus,
-    title: 'Regístrate',
-    description: 'Crea tu cuenta en segundos y define tu categoría de juego.',
-  },
-  {
     icon: Search,
-    title: 'Encuentra un partido',
-    description: 'Busca partidos disponibles en los clubes de Valdivia o crea el tuyo.',
+    title: 'Encuentra o crea un partido',
+    description: 'Busca partidos disponibles en los clubes de Valdivia o publica el tuyo propio.',
   },
   {
-    icon: Trophy,
-    title: '¡A jugar!',
-    description: 'Únete al partido, coordina con los jugadores y disfruta del pádel.',
+    icon: ClipboardCheck,
+    title: 'Juega y sube resultados',
+    description: 'Despues del partido, el organizador propone el resultado y los jugadores lo confirman.',
+  },
+  {
+    icon: TrendingUp,
+    title: 'Escala en el ranking',
+    description: 'Cada victoria confirmada suma a tu ranking. Compite por ser el mejor de la comunidad.',
   },
 ];
 
@@ -184,16 +184,119 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Ranking & Results Feature Highlight */}
+      <section className="bg-white py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
+            <div>
+              <Badge className="mb-4 bg-amber-100 text-amber-800 hover:bg-amber-100">Nuevo</Badge>
+              <h2 className="text-3xl font-bold text-slate-800 sm:text-4xl">
+                Ranking y resultados en vivo
+              </h2>
+              <p className="mt-4 text-lg text-slate-500">
+                MatchPadel no es solo para organizar partidos. Despues de cada partido,
+                sube el resultado y los demas jugadores lo confirman. Cada victoria suma
+                a tu ranking personal.
+              </p>
+              <div className="mt-8 space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100">
+                    <ClipboardCheck className="h-5 w-5 text-emerald-700" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-slate-800">Resultados verificados</h3>
+                    <p className="text-sm text-slate-500">
+                      El organizador propone el resultado y los jugadores deben aprobarlo. Sin trampas.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100">
+                    <Trophy className="h-5 w-5 text-amber-700" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-slate-800">Ranking de la comunidad</h3>
+                    <p className="text-sm text-slate-500">
+                      Compite por las primeras posiciones. Tu perfil muestra tus estadisticas, victorias y derrotas.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100">
+                    <TrendingUp className="h-5 w-5 text-blue-700" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-slate-800">Historial completo</h3>
+                    <p className="text-sm text-slate-500">
+                      Revisa tu historial de partidos, win rate y trazabilidad de todos tus resultados.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-8">
+                <Button
+                  asChild
+                  className="bg-blue-800 hover:bg-blue-700"
+                >
+                  <Link to="/register">
+                    Crear mi cuenta
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+
+            {/* Mini ranking preview */}
+            {ranking && ranking.length > 0 && (
+              <div className="overflow-hidden rounded-xl border shadow-lg">
+                <div className="bg-gradient-to-r from-blue-800 to-blue-600 px-6 py-4">
+                  <div className="flex items-center gap-2 text-white">
+                    <Trophy className="h-5 w-5 text-amber-400" />
+                    <h3 className="font-bold">Top 5 Jugadores</h3>
+                  </div>
+                </div>
+                <div className="divide-y">
+                  {ranking.slice(0, 5).map((entry) => (
+                    <div key={entry.userId} className="flex items-center gap-3 px-6 py-3">
+                      <span
+                        className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${positionBadge(entry.position)}`}
+                      >
+                        {entry.position}
+                      </span>
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={entry.avatarUrl ?? undefined} />
+                        <AvatarFallback className="bg-blue-100 text-xs font-semibold text-blue-800">
+                          {entry.firstName.charAt(0)}{entry.lastName.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-slate-800">
+                          {entry.firstName} {entry.lastName}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-emerald-600">{entry.wins}V</p>
+                        <p className="text-[10px] text-slate-400">{entry.losses}D</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
       {/* Top Jugadores */}
       {ranking && ranking.length > 0 && (
         <section className="bg-white py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h2 className="text-3xl font-bold text-slate-800 sm:text-4xl">
-                Top Jugadores
+                Ranking Completo
               </h2>
               <p className="mx-auto mt-4 max-w-2xl text-lg text-slate-500">
-                Los jugadores más activos de la comunidad.
+                Los mejores jugadores segun sus victorias confirmadas. ¡Sube resultados despues de cada partido para aparecer aqui!
               </p>
             </div>
             <div className="mx-auto mt-12 max-w-2xl">
@@ -204,7 +307,7 @@ export default function LandingPage() {
                       <th className="px-4 py-3 text-center">#</th>
                       <th className="px-4 py-3">Jugador</th>
                       <th className="px-4 py-3 text-center">Categoría</th>
-                      <th className="px-4 py-3 text-center">Partidos</th>
+                      <th className="px-4 py-3 text-center">Victorias</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -243,7 +346,7 @@ export default function LandingPage() {
                           )}
                         </td>
                         <td className="px-4 py-3 text-center font-semibold text-slate-800">
-                          {entry.matchesPlayed}
+                          {entry.wins}
                         </td>
                       </tr>
                     ))}

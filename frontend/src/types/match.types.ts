@@ -3,12 +3,23 @@ import type { Club, Court } from './club.types';
 
 export type MatchStatus = 'OPEN' | 'FULL' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 
+export type GenderMode = 'MALE_ONLY' | 'FEMALE_ONLY' | 'MIXED' | 'ANY';
+
 export interface MatchPlayer {
   id: string;
   matchId: string;
-  userId: string;
+  userId: string | null;
+  isGuest: boolean;
+  guestName: string | null;
+  addedById: string | null;
+  team: number | null;
   joinedAt: string;
-  user: User;
+  user: User | null;
+}
+
+export interface GuestInput {
+  userId: string | null;
+  name: string | null;
 }
 
 export interface Match {
@@ -25,6 +36,9 @@ export interface Match {
   pricePerPlayer: number | null;
   status: MatchStatus;
   description: string | null;
+  genderMode: GenderMode;
+  requiredMales: number | null;
+  requiredFemales: number | null;
   isPrivate: boolean;
   whatsappGroupLink: string | null;
   createdAt: string;
@@ -46,6 +60,10 @@ export interface CreateMatchRequest {
   initialPlayers?: number;
   notes?: string | null;
   isPrivate?: boolean;
+  genderMode?: GenderMode;
+  requiredMales?: number | null;
+  requiredFemales?: number | null;
+  guests?: GuestInput[];
 }
 
 export interface UpdateMatchRequest {

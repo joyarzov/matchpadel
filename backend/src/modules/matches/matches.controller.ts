@@ -81,6 +81,19 @@ export async function getMyMatches(req: AuthRequest, res: Response, next: NextFu
   }
 }
 
+export async function removeGuest(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const result = await matchesService.removeGuest(
+      req.params.matchId as string,
+      req.params.matchPlayerId as string,
+      req.user!.id,
+    );
+    successResponse(res, result);
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function getWhatsAppLink(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const result = await matchesService.getWhatsAppLink(req.params.matchId as string);

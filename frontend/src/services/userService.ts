@@ -31,4 +31,9 @@ export const userService = {
   async deleteUser(userId: string): Promise<void> {
     await api.delete(`/users/${userId}`);
   },
+
+  async searchUsers(query: string): Promise<{ id: string; firstName: string; lastName: string; category: string; gender: string; avatarUrl: string | null }[]> {
+    const response = await api.get('/users/search', { params: { q: query } });
+    return response.data;
+  },
 };

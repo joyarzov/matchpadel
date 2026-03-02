@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PlayerCategory, MatchStatus } from '@prisma/client';
+import { PlayerCategory, MatchStatus, GenderMode } from '@prisma/client';
 
 export const createMatchSchema = z.object({
   clubId: z.string().uuid('ID de club inválido'),
@@ -16,8 +16,15 @@ export const createMatchSchema = z.object({
   durationMinutes: z.number().int().min(30).max(180).default(90),
   maxPlayers: z.number().int().min(2).max(8).default(4),
   initialPlayers: z.number().int().min(1).max(7).default(1),
+  guests: z.array(z.object({
+    userId: z.string().uuid().nullable(),
+    name: z.string().nullable(),
+  })).optional().default([]),
   notes: z.string().max(500).nullable().optional(),
   isPrivate: z.boolean().default(false),
+  genderMode: z.nativeEnum(GenderMode).default('ANY'),
+  requiredMales: z.number().int().min(0).max(8).nullable().optional(),
+  requiredFemales: z.number().int().min(0).max(8).nullable().optional(),
 });
 
 export const updateMatchSchema = z.object({

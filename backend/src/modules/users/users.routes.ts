@@ -8,6 +8,7 @@ import {
   deactivateUser,
   getUserStats,
   getRanking,
+  searchUsers,
 } from './users.controller';
 import { authenticate } from '../../middleware/authenticate';
 import { authorize } from '../../middleware/authorize';
@@ -17,6 +18,7 @@ import {
   changePasswordSchema,
   updateRoleSchema,
   userIdParamSchema,
+  searchUsersSchema,
 } from './users.validators';
 
 const router = Router();
@@ -28,6 +30,7 @@ router.get('/ranking', getRanking);
 router.use(authenticate);
 
 // Player routes
+router.get('/search', validateRequest({ query: searchUsersSchema }), searchUsers);
 router.get('/stats', getUserStats);
 router.get('/profile', getProfile);
 router.put('/profile', validateRequest({ body: updateProfileSchema }), updateProfile);

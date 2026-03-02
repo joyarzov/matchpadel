@@ -71,6 +71,16 @@ export async function getUserStats(req: AuthRequest, res: Response, next: NextFu
   }
 }
 
+export async function searchUsers(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const q = req.query.q as string;
+    const users = await usersService.searchUsers(q);
+    successResponse(res, users);
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function getRanking(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const limit = parseInt(req.query.limit as string) || 10;

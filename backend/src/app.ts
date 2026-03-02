@@ -11,6 +11,7 @@ import authRoutes from './modules/auth/auth.routes';
 import usersRoutes from './modules/users/users.routes';
 import clubsRoutes from './modules/clubs/clubs.routes';
 import matchesRoutes from './modules/matches/matches.routes';
+import availabilityRoutes from './modules/availability/availability.routes';
 import { shareMatch } from './modules/matches/matchShare.controller';
 
 const app = express();
@@ -39,6 +40,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/clubs', clubsRoutes);
 app.use('/api/matches', matchesRoutes);
+app.use('/api/availability', availabilityRoutes);
 
 // 404 handler
 app.use((_req, res) => {

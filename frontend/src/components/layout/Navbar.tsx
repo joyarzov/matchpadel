@@ -8,6 +8,8 @@ import {
   PlusCircle,
   ListChecks,
   ShieldCheck,
+  Lock,
+  CalendarSearch,
 } from 'lucide-react';
 import { PadelIcon } from '@/components/icons/PadelIcon';
 import { useAuth } from '@/hooks/useAuth';
@@ -26,6 +28,7 @@ const navLinks = [
   { label: 'Partidos', href: '/matches', icon: PadelIcon },
   { label: 'Crear Partido', href: '/matches/create', icon: PlusCircle },
   { label: 'Mis Partidos', href: '/my-matches', icon: ListChecks },
+  { label: 'Disponibilidad', href: '/availability', icon: CalendarSearch },
 ];
 
 export function Navbar() {
@@ -114,6 +117,13 @@ export function Navbar() {
                   >
                     <User className="mr-2 h-4 w-4" />
                     Perfil
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => navigate('/change-password')}
+                  >
+                    <Lock className="mr-2 h-4 w-4" />
+                    Cambia tu contraseña
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -224,6 +234,14 @@ export function Navbar() {
                     >
                       <User className="h-5 w-5" />
                       Perfil
+                    </Link>
+                    <Link
+                      to="/change-password"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium text-blue-100 hover:bg-blue-700 hover:text-white"
+                    >
+                      <Lock className="h-5 w-5" />
+                      Cambia tu contraseña
                     </Link>
                     <button
                       onClick={() => {

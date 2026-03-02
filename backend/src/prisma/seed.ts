@@ -20,6 +20,7 @@ async function main() {
         lastName: 'MatchPadel',
         phone: '+56912345678',
         category: PlayerCategory.TERCERA,
+        gender: 'MALE',
         role: 'ADMIN',
       },
     });
@@ -47,6 +48,7 @@ async function main() {
       imageUrl: 'http://valdiviapadelcentercl.matchpoint.com.es/ValdiviaPadelCenter/img/logo.png',
       latitude: -39.8380,
       longitude: -73.2340,
+      matchpointDomain: 'valdiviapadelcentercl.matchpoint.com.es',
       courts: [
         { number: 1, name: 'Cancha 1', isIndoor: false, surface: 'césped sintético' },
         { number: 2, name: 'Cancha 2', isIndoor: false, surface: 'césped sintético' },
@@ -64,8 +66,9 @@ async function main() {
       imageUrl: 'http://casapadel-cl.matchpoint.com.es/CasaPadelValdivia/img/logo.png',
       latitude: -39.8355,
       longitude: -73.2290,
+      matchpointDomain: 'casapadel-cl.matchpoint.com.es',
       courts: [
-        { number: 1, name: 'Cancha 1', isIndoor: false, surface: 'césped sintético' },
+        { number: 1, name: 'Socovesa', isIndoor: false, surface: 'césped sintético' },
         { number: 2, name: 'Cancha 2', isIndoor: false, surface: 'césped sintético' },
         { number: 3, name: 'Cancha 3', isIndoor: false, surface: 'césped sintético' },
         { number: 4, name: 'Cancha 4', isIndoor: false, surface: 'césped sintético' },
@@ -81,6 +84,8 @@ async function main() {
       imageUrl: null,
       latitude: -39.8370,
       longitude: -73.2320,
+      matchpointDomain: null,
+      easycanchaClubId: 400,
       courts: [
         { number: 1, name: 'Cancha 1', isIndoor: false, surface: 'césped sintético' },
         { number: 2, name: 'Cancha 2', isIndoor: false, surface: 'césped sintético' },
@@ -96,6 +101,8 @@ async function main() {
       imageUrl: null,
       latitude: -39.7950,
       longitude: -73.2100,
+      matchpointDomain: null,
+      easycanchaClubId: 1128,
       courts: [
         { number: 1, name: 'Cancha 1', isIndoor: false, surface: 'césped sintético' },
         { number: 2, name: 'Cancha 2', isIndoor: false, surface: 'césped sintético' },
@@ -113,6 +120,7 @@ async function main() {
       imageUrl: 'http://lasmariaspadel.matchpoint.com.es/LasMariasPadel/img/logo.png',
       latitude: -39.7990,
       longitude: -73.2560,
+      matchpointDomain: 'lasmariaspadel.matchpoint.com.es',
       courts: [
         { number: 1, name: 'Cancha 1', isIndoor: false, surface: 'césped sintético' },
         { number: 2, name: 'Cancha 2', isIndoor: false, surface: 'césped sintético' },
@@ -129,6 +137,7 @@ async function main() {
       imageUrl: null,
       latitude: -39.8200,
       longitude: -73.2450,
+      matchpointDomain: 'riverpadelcl.matchpoint.com.es',
       courts: [
         { number: 1, name: 'Cancha 1', isIndoor: false, surface: 'césped sintético' },
         { number: 2, name: 'Cancha 2', isIndoor: false, surface: 'césped sintético' },

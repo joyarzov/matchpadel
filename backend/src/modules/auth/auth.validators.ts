@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PlayerCategory } from '@prisma/client';
+import { PlayerCategory, Gender } from '@prisma/client';
 
 export const registerSchema = z.object({
   email: z.string().email('Email inválido').toLowerCase().trim(),
@@ -15,6 +15,7 @@ export const registerSchema = z.object({
     .string()
     .regex(/^\+569\d{8}$/, 'El teléfono debe tener formato +569XXXXXXXX'),
   category: z.nativeEnum(PlayerCategory).optional().default('SEXTA'),
+  gender: z.nativeEnum(Gender),
 });
 
 export const loginSchema = z.object({

@@ -66,6 +66,7 @@ export function RegisterForm() {
 
   const passwordValue = watch('password');
   const selectedCategory = watch('category');
+  const selectedGender = watch('gender');
 
   const strength = useMemo(
     () => getPasswordStrength(passwordValue || ''),
@@ -80,6 +81,7 @@ export function RegisterForm() {
         ...registerData,
         phone: registerData.phone || undefined,
         category: registerData.category || undefined,
+        gender: registerData.gender,
       };
       await authRegister(payload);
       toast({
@@ -171,6 +173,35 @@ export function RegisterForm() {
               />
               {errors.phone && (
                 <p className="text-xs text-red-500">{errors.phone.message}</p>
+              )}
+            </div>
+
+            {/* Gender */}
+            <div className="space-y-2">
+              <Label>Género</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {([
+                  { value: 'MALE' as const, label: 'Hombre' },
+                  { value: 'FEMALE' as const, label: 'Mujer' },
+                ]).map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() =>
+                      setValue('gender', opt.value, { shouldValidate: true })
+                    }
+                    className={`rounded-lg border-2 px-3 py-2 text-sm font-medium transition-colors ${
+                      selectedGender === opt.value
+                        ? 'border-blue-800 bg-blue-50 text-blue-800'
+                        : 'border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              {errors.gender && (
+                <p className="text-xs text-red-500">{errors.gender.message}</p>
               )}
             </div>
 

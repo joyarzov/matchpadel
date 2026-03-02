@@ -44,6 +44,8 @@ services:
       JWT_SECRET: ${JWT_SECRET:-super_secret_jwt_key_change_in_production}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-super_secret_refresh_key_change_in_prod}
       FRONTEND_URL: http://localhost:5173,http://192.168.100.61:5173
+      EASYCANCHA_EMAIL: ${EASYCANCHA_EMAIL:-jose.oyarzo.vera@gmail.com}
+      EASYCANCHA_PASSWORD: ${EASYCANCHA_PASSWORD:-Jose1520}
     ports:
       - "3000:3000"
     volumes:
