@@ -1,4 +1,7 @@
 import https from 'node:https';
+import dns from 'node:dns';
+
+dns.setDefaultResultOrder('ipv4first');
 
 const EC_BASE = 'https://www.easycancha.com/api';
 
