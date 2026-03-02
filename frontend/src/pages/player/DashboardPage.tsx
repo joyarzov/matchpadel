@@ -17,7 +17,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { MatchCard } from '@/components/matches/MatchCard';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { useMyMatches, useMatches, useJoinMatch, useLeaveMatch } from '@/hooks/useMatches';
 import { useUserStats } from '@/hooks/useStats';
@@ -33,7 +33,7 @@ export default function DashboardPage() {
     category: user?.category ?? undefined,
     limit: 6,
   });
-  const { data: stats, isLoading: statsLoading } = useUserStats();
+  const { data: stats } = useUserStats();
   const joinMatch = useJoinMatch();
   const leaveMatch = useLeaveMatch();
 

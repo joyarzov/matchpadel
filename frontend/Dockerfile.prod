@@ -6,7 +6,7 @@ RUN npm install
 COPY . .
 ENV VITE_API_URL=/matchpadel/api
 ENV VITE_BASE_PATH=/matchpadel/
-RUN npm run build
+RUN npx vite build
 
 # Production stage
 FROM nginx:alpine
